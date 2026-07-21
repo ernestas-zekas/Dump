@@ -1,0 +1,52 @@
+name: Atnaujinti atliekų grafiką
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # kiekvieną pirmadienį 06:00 UTC
+  workflow_dispatch: {}     # leidžia paleisti rankiniu būdu iš GitHub
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: pip install requests pdfplumber openpyxl icalendar
+
+      - name: Generate calendar
+        id: gen
+        continue-on-error: true   # net jei nepavyko - dar norim commit'inti tai, kas pavyko
+        env:
+          ADDR_VILLAGE: ${{ secrets.ADDR_VILLAGE }}
+          ADDR_STREET: ${{ secrets.ADDR_STREET }}
+        run: python3 generate_calendar.py
+
+      - name: Commit updated ics + logs
+        if: always()
+        run: |
+          git config user.name "waste-bot"
+          git config user.email "actions@github.com"
+          git add atliekos.ics warnings.log || true
+          if git diff --quiet --cached; then
+            echo "Nieko nepasikeitė - commit'as nedaromas."
+          else
+            git commit -m "Automatinis grafiko atnaujinimas"
+            git push
+          fi
+
+      # Jei generavimas nepavyko - eiga tampa RAUDONA, o GitHub automatiškai
+      # atsiunčia standartinį el. laišką į paskyros paštą. warnings.log jau
+      # commit'intas, tad matysi, kas būtent nepavyko.
+      - name: Pažymėti klaidą (kad ateitų GitHub laiškas)
+        if: steps.gen.outcome == 'failure'
+        run: |
+          echo "Generavimas nepavyko - žr. warnings.log"
+          exit 1
