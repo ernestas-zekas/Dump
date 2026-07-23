@@ -31,6 +31,7 @@ import os
 import sys
 import datetime
 from collections import defaultdict
+from urllib.parse import unquote
 
 import requests
 import pdfplumber
@@ -92,26 +93,53 @@ def log_note(msg):
 # Puslapio nuskaitymas
 # --------------------------------------------------------------------------
 
+def _newness(href):
+    """Naujumo įvertis iš failo pavadinimo: (metai, vėliausias mėnuo).
+
+    Pvz. „2026 m. liepos, rugpjūčio, rugsėjo mėn." -> (2026, 9).
+    Jei puslapyje kabo keli to paties tipo failai (senas + naujas), imamas
+    didžiausias įvertis. Nepavykus nustatyti - (0, 0), tad tinkamai pavadintas
+    failas visada laimi prieš bevardį.
+    """
+    name = unquote(href).lower()
+    ym = re.search(r'(20\d{2})', name)
+    year = int(ym.group(1)) if ym else 0
+    months = [MONTH_NAMES[w] for w in re.findall(r'[a-ząčęėįšųūž]+', name) if w in MONTH_NAMES]
+    return (year, max(months) if months else 0)
+
+
 def find_current_links():
-    """Scrape the schedule page for the 3 current document links."""
+    """Scrape the schedule page for the 3 current document links.
+
+    Iš visų .pdf/.xlsx nuorodų kiekvienai rūšiai parenkama NAUJAUSIA (pagal
+    pavadinime esančius metus/mėnesį), o ne pirma pasitaikiusi HTML'e.
+    """
     resp = requests.get(BASE_URL, timeout=30)
     resp.raise_for_status()
     html = resp.text
 
+    all_hrefs = re.findall(r'href="([^"]+\.(?:pdf|xlsx))"', html, re.IGNORECASE)
+
+    def pick(keyword, exclude=None):
+        cands = [
+            h for h in all_hrefs
+            if keyword.lower() in unquote(h).lower()
+            and (exclude is None or exclude.lower() not in unquote(h).lower())
+        ]
+        # naujausias; jei įverčio nustatyti nepavyko, max lieka ties pirmu kandidatu
+        return max(cands, key=_newness) if cands else None
+
     links = {}
-    for label, keyword in [
-        ("pakuotes", "Pakuo"),
-        ("stiklas", "Stiklo"),
-        ("buitines", "Buitini"),
+    # (label, keyword, exclude): stiklo faile taip pat yra žodis „pakuočių",
+    # todėl pakuotėms atmetame nuorodas, kuriose yra „Stiklo".
+    for label, keyword, exclude in [
+        ("pakuotes", "Pakuo", "Stiklo"),
+        ("stiklas", "Stiklo", None),
+        ("buitines", "Buitini", None),
     ]:
-        # find <a href="...keyword...grafikas.pdf|xlsx">
-        pattern = re.compile(
-            r'href="([^"]*' + re.escape(keyword) + r'[^"]*\.(?:pdf|xlsx))"',
-            re.IGNORECASE,
-        )
-        m = pattern.search(html)
-        if m:
-            links[label] = m.group(1)
+        href = pick(keyword, exclude)
+        if href:
+            links[label] = href
         else:
             log_warning(f"Nepavyko rasti '{keyword}' nuorodos puslapyje - patikrinkite rankiniu būdu: {BASE_URL}")
     return links
