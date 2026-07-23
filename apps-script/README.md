@@ -5,8 +5,9 @@ priminimai telefone **nesuveikia patikimai**. Šis skriptas tą pačią .ics
 nuorodą kartą per parą surašo į kalendorių, kurį **tu valdai**, todėl
 notifikacijos veikia ir sinchronizuojasi į Samsung telefoną.
 
-Įvykis rodomas **18:00 dieną prieš išvežimą** (kai reikia išnešti konteinerį),
-su popup priminimu tuo pačiu momentu.
+Įvykis rodomas **dieną prieš išvežimą** (kai reikia išnešti konteinerį), su
+**keliais priminimais** tą vakarą (numatyta **18:00, 19:00 ir 19:50**) — jei
+vieną atmesi būdamas užsiėmęs, kitas vis tiek primins.
 
 ---
 
@@ -89,6 +90,9 @@ Nori atnaujinti rankiniu būdu? Script redaktoriuje pasirink **`syncWasteCalenda
 
 ## Ką galima keisti (Code.gs viršuje)
 
-- `REMINDER_HOUR` — priminimo valanda (numatyta 18).
+- `REMINDER_TIMES` — priminimų laikai `[val, min]` dieną prieš išvežimą.
+  Pvz. `[[18, 0], [19, 0], [19, 50]]`. Dėk kiek nori; įvykis kalendoriuje
+  rodomas ties vėliausiu, o ankstesni suveikia kaip papildomi priminimai.
+  Pakeitęs — paleisk `syncWasteCalendar`, kad persirašytų.
 - Trigerio dažnis — `installTrigger` viduje `everyDays(1)`.
 - `ICS_URL` — jei kada pasikeistų feed'o adresas.

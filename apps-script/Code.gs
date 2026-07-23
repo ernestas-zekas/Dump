@@ -7,8 +7,9 @@
  * įvykius į kalendorių, kurį TU VALDAI - tada notifikacijos veikia ir
  * sinchronizuojasi į Samsung telefoną.
  *
- * Įvykis dedamas 18:00 dieną PRIEŠ išvežimą (kai reikia išnešti konteinerį),
- * su popup priminimu tuo pačiu momentu. Pavadinimas paimamas iš .ics
+ * Įvykis dedamas dieną PRIEŠ išvežimą (kai reikia išnešti konteinerį), su
+ * KELIAIS popup priminimais tą vakarą (žr. REMINDER_TIMES) - jei vieną atmesi
+ * būdamas užsiėmęs, kitas vis tiek primins. Pavadinimas paimamas iš .ics
  * (pvz. „Buitinės atliekos rytoj liepos 8").
  *
  * NUSTATYMAS (vienkartinis):
@@ -20,8 +21,12 @@
 
 const ICS_URL       = 'https://ernestas-zekas.github.io/Dump/atliekos.ics';
 const CAL_NAME      = 'Atliekų grafikas';
-const REMINDER_HOUR = 18;   // 18:00 vietos laiku, dieną prieš išvežimą
 const HORIZON_YEARS = 2;    // kiek į priekį valdomas kalendorius
+
+// Priminimų laikai (val, min) vietos laiku, dieną PRIEŠ išvežimą.
+// Gali dėti kiek nori; įvykis kalendoriuje rodomas ties VĖLIAUSIU laiku,
+// o visi ankstesni suveikia kaip papildomi priminimai.
+const REMINDER_TIMES = [[18, 0], [19, 0], [19, 50]];
 
 /** Įdiegia kasdienį trigerį ir iškart sinchronizuoja. Paleisk vieną kartą. */
 function installTrigger() {
@@ -45,14 +50,21 @@ function syncWasteCalendar() {
   // tad taip išvengiam dublikatų be sudėtingos dedupinimo logikos.
   cal.getEvents(now, horizon).forEach(function (e) { e.deleteEvent(); });
 
+  // Įvykis anchor'inamas ties vėliausiu priminimu; ankstesni = offset'ai prieš
+  // jį (Google popup priminimas gali suveikti tik PRIEŠ įvykio pradžią).
+  const anchor = REMINDER_TIMES[REMINDER_TIMES.length - 1];
+  const anchorMin = anchor[0] * 60 + anchor[1];
+
   let created = 0;
   events.forEach(function (ev) {
-    const start = new Date(ev.y, ev.mo - 1, ev.d, REMINDER_HOUR, 0, 0); // 18:00 dieną prieš
-    if (start <= now) return;                                           // praeities praleidžiam
+    const start = new Date(ev.y, ev.mo - 1, ev.d, anchor[0], anchor[1], 0); // vėliausias laikas, dieną prieš
+    if (start <= now) return;                                               // praeities praleidžiam
     const end = new Date(start.getTime() + 15 * 60 * 1000);
     const e = cal.createEvent(ev.summary, start, end);
     e.removeAllReminders();
-    e.addPopupReminder(0);   // suveikia įvykio metu = 18:00
+    REMINDER_TIMES.forEach(function (t) {
+      e.addPopupReminder(anchorMin - (t[0] * 60 + t[1]));  // min prieš anchor -> suveikia t valandą
+    });
     created++;
   });
   console.log('Sinchronizuota įvykių: ' + created);
