@@ -23,28 +23,38 @@ failą kalendoriaus prenumeratai.
 
 ## Kaip atrodo priminimai
 
-Konteinerį reikia išnešti **vakare prieš** išvežimą, todėl kalendoriuje
-įvykis dedamas **dieną prieš** atvažiuojant šiukšliavežiui, o pavadinime
-matosi tikroji išvežimo diena, pvz.:
+Konteinerį reikia išnešti **vakare prieš** išvežimą, todėl įvykis dedamas
+**dieną prieš** atvažiuojant šiukšliavežiui, o pavadinime matosi tikroji
+išvežimo diena, pvz.:
 
 > **Buitinės atliekos rytoj vasario 18**  (įvykis rodomas vasario 17)
 
-Prie kiekvieno įvykio pridėtas priminimas (VALARM), suveikiantis
-**priminimo dienos 18:00** – jį telefone galima atidėti („snooze“).
+- Pačiame `.ics` faile prie kiekvieno įvykio yra priminimas **18:00** (VALARM).
+- **Telefone** (per Google Apps Script – žr. žemiau) sukuriami **trys**
+  priminimai tą vakarą – **18:00, 19:00 ir 19:50** – kad, atmetus vieną
+  būnant užsiėmusiam, kitas vis tiek primintų.
 
-## Telefone (prenumerata)
+## Telefone (kad priminimai tikrai suveiktų)
 
-**Samsung telefonas (rekomenduojama – per Google paskyrą):**
-Samsung Calendar pats neturi „prenumeruok iš URL“ funkcijos, bet rodo
-Google paskyros kalendorius. Todėl:
-1. Naršyklėje atidarykite **calendar.google.com** (ne programėlę) → kairėje
-   „Kiti kalendoriai“ → **„+“** → **„Iš URL“** → įklijuokite `.ics` nuorodą.
-2. Telefone: **Samsung Calendar → ☰ → „Kalendarių valdymas“** → po Google
-   paskyra įjunkite „Atliekų grafikas“.
-3. Jei iškart nematyti – palaukite kelias valandas arba priverstinai
-   sinchronizuokite Google paskyrą.
+> ⚠️ **Svarbu:** „Iš URL“ prenumeruotas `.ics` kalendorius Google/Samsung
+> telefone yra **tik skaitymui**, ir jo priminimai (VALARM) **nesuveikia
+> patikimai** – Google jų neapdoroja ir neleidžia jų valdyti. Kad priminimai
+> realiai skambėtų, naudokite **Google Apps Script**: jis tą patį feed’ą
+> surašo į kalendorių, kurį **jūs valdote**.
+
+**Samsung / Android (rekomenduojama):**
+Sekite [apps-script/README.md](apps-script/README.md) instrukcijas – įkeliate
+mažą skriptą į <https://script.google.com>, jis **kasdien** pats atnaujina
+kalendorių „Atliekų grafikas“ su **veikiančiais priminimais 18:00 / 19:00 /
+19:50**. Nustatoma vieną kartą, toliau viskas automatiška. Priminimų laikus
+galima keisti skripto viršuje (`REMINDER_TIMES`).
+
+> Po nustatymo **pašalinkite seną „Iš URL“ prenumeratą** Google kalendoriuje,
+> kad įvykiai nesidubliuotų.
 
 **iPhone (Apple Calendar):**
+Apple gerbia `.ics` priminimus prenumeratose, tad užtenka prenumeruoti
+tiesiogiai (suveiks 18:00 priminimas):
 Nustatymai → Kalendorius → Paskyros → Pridėti paskyrą → Kita →
 Pridėti prenumeruojamą kalendorių → įklijuokite `.ics` nuorodą.
 
