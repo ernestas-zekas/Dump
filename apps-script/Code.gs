@@ -58,10 +58,17 @@ function syncWasteCalendar() {
   console.log('Sinchronizuota įvykių: ' + created);
 }
 
-/** Randa arba sukuria valdomą kalendorių. */
+/**
+ * Randa arba sukuria kalendorių, kurį TU VALDAI.
+ * Svarbu: prenumeruota (Iš URL) versija taip pat vadinasi „Atliekų grafikas"
+ * (iš X-WR-CALNAME), bet ji tik skaitymui - į ją rašyti negalima
+ * („Action not allowed"). Todėl imame tik `isOwnedByMe()` kalendorių.
+ */
 function getOrCreateCalendar(name) {
-  const found = CalendarApp.getCalendarsByName(name);
-  if (found.length) return found[0];
+  const owned = CalendarApp.getCalendarsByName(name).filter(function (c) {
+    return c.isOwnedByMe();
+  });
+  if (owned.length) return owned[0];
   return CalendarApp.createCalendar(name, { color: CalendarApp.Color.GREEN });
 }
 
