@@ -7,12 +7,20 @@ on:
 
 permissions:
   contents: write
+  actions: write   # keepalive: leidžia API'ui „įjungti" eigą (nunulina 60 d. neaktyvumo skaitiklį)
 
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+
+      # GitHub išjungia schedule eigas, jei repo 60 d. nebuvo push'o. Kai grafikas
+      # nesikeičia, commit'ų nebūna, tad eiga „užmiega". Šis žingsnis kiekvieną
+      # kartą per API iš naujo įjungia eigą - skaitiklis nunulinamas be tuščių commit'ų.
+      - uses: gautamkrishnar/keepalive-workflow@v2
+        with:
+          use_api: true
 
       - uses: actions/setup-python@v6
         with:
