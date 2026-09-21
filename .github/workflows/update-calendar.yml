@@ -18,9 +18,10 @@ jobs:
       # GitHub išjungia schedule eigas, jei repo 60 d. nebuvo push'o. Kai grafikas
       # nesikeičia, commit'ų nebūna, tad eiga „užmiega". Šis žingsnis kiekvieną
       # kartą per API iš naujo įjungia eigą - skaitiklis nunulinamas be tuščių commit'ų.
-      - uses: gautamkrishnar/keepalive-workflow@v2
-        with:
-          use_api: true
+      - name: Keepalive (nunulinti 60 d. neaktyvumo skaitiklį)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/update-calendar.yml/enable"
 
       - uses: actions/setup-python@v6
         with:

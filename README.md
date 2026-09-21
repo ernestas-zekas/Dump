@@ -63,8 +63,8 @@ Pridėti prenumeruojamą kalendorių → įklijuokite `.ics` nuorodą.
   jis nemodifikuoja `.ics`, o workflow’as tampa raudonas ir GitHub atsiunčia
   el. laišką. Tuomet žr. `warnings.log`.
 - GitHub **išjungia `schedule` eigas po 60 d. be push'ų** (laiškas „This
-  scheduled workflow is disabled…"). Workflow'e yra `keepalive-workflow`
-  žingsnis, kuris kas paleidimą per API nunulina tą skaitiklį. Jei vis dėlto
+  scheduled workflow is disabled…"). Workflow'e yra „Keepalive" žingsnis,
+  kuris kas paleidimą per API nunulina tą skaitiklį. Jei vis dėlto
   išsijungė (pvz. eiga nebuvo paleista >60 d.): Actions → pasirinkti eigą →
   `Enable workflow`, arba `gh workflow enable update-calendar.yml`.
 - Trys atskiri parseriai (pakuotės PDF / stiklas PDF / buitinės XLSX), nes
